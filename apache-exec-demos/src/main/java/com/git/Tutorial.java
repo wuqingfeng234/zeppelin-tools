@@ -4,6 +4,8 @@ package com.git;
 import org.apache.commons.exec.*;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Tutorial {
 
@@ -11,7 +13,7 @@ public class Tutorial {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         Tutorial tutorial = new Tutorial();
-        tutorial.AsyncExec();
+        tutorial.buildCmdlineIncrementally();
     }
 
     private void jdkCmd() throws IOException, InterruptedException {
@@ -25,7 +27,13 @@ public class Tutorial {
         }
     }
 
-    private void firstProcess() throws IOException {
+    private void firstExec() throws IOException {
+        CommandLine commandLine = CommandLine.parse(cmd);
+        DefaultExecutor executor = new DefaultExecutor();
+        executor.execute(commandLine);
+    }
+
+    private void resultStream() throws IOException {
         CommandLine commandLine = CommandLine.parse(cmd);
         DefaultExecutor executor = new DefaultExecutor();
 
@@ -44,6 +52,28 @@ public class Tutorial {
         System.out.println(err);
     }
 
+    private void watchDog() throws IOException {
+        CommandLine commandLine = CommandLine.parse(cmd);
+        DefaultExecutor executor = new DefaultExecutor();
+        ExecuteWatchdog watchdog = new ExecuteWatchdog(10);
+        executor.setWatchdog(watchdog);
+        executor.execute(commandLine);
+    }
+    private void buildCmdlineIncrementally() throws IOException {
+        Map map = new HashMap();
+        map.put("file", new File("invoice.pdf"));
+        CommandLine cmdLine = new CommandLine("C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe");
+        cmdLine.addArgument("/p");
+        cmdLine.addArgument("/h");
+        cmdLine.addArgument("${file}");
+        cmdLine.setSubstitutionMap(map);
+        DefaultExecutor executor = new DefaultExecutor();
+        executor.setExitValue(1);
+        ExecuteWatchdog watchdog = new ExecuteWatchdog(60000);
+        executor.setWatchdog(watchdog);
+        int exitValue = executor.execute(cmdLine);
+
+    }
     private void AsyncExec() throws IOException, InterruptedException {
         CommandLine commandLine = CommandLine.parse(cmd);
         DefaultExecutor executor = new DefaultExecutor();
